@@ -85,7 +85,8 @@ and a parse failure on a read path takes the page down.
 var kind = PropertyKindRef.Read(yaml.Kind);   // never throws
 kind.IsKnown;                                 // false for "Torque"
 kind.Token;                                   // "Torque" — nameable in a log
-kind.ToString();                              // "Torque"; "Unknown" when the token was blank
+kind.Display;                                 // "Torque"; "Unknown" when the token was blank
+kind.ToString();                              // the serialised form, verbatim — round-trips exactly
 
 catalog.Facet(kind, canonical, unit, choices) // PropertyFacet.None — refuses, never guesses
 ```

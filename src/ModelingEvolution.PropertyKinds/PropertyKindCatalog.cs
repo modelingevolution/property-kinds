@@ -124,9 +124,14 @@ public readonly record struct PropertyKindRef : IParsable<PropertyKindRef>
         return new PropertyKindRef(null, text);
     }
 
-    /// <summary>The token, or <c>"Unknown"</c> when there is none — so a log line and a rendered cell both say
-    /// something.</summary>
-    public override string ToString() => Token.Length == 0 ? "Unknown" : Token;
+    /// <summary>Something to print when there is nothing to print — the token, or <c>"Unknown"</c> when the wire
+    /// carried none. Deliberately NOT <see cref="ToString"/>: that one is the serialised form and must round-trip
+    /// exactly, and a blank kind that came back as the word "Unknown" would not be the value that was read.</summary>
+    public string Display => Token.Length == 0 ? "Unknown" : Token;
+
+    /// <summary>The token, VERBATIM — this is the serialised form, so reading it back yields the same value it was
+    /// written from, blank included. For something a human should look at, use <see cref="Display"/>.</summary>
+    public override string ToString() => Token;
 
     /// <summary>Total, like <see cref="Read"/> — this never throws, because an unrecognised kind is a state, not a
     /// failure.</summary>
@@ -193,8 +198,11 @@ public sealed class PropertyKindCatalog
             ValueKind.Of<Percent>((v, _) =>
                 PropertyFacet.OfScalar(PropertyValueKind.Percent, v.Value, Percent.Unit, v.Qualifier)),
             // A range's unit comes from the PROPERTY DEFINITION and is NOT normalised, so it travels on the facet
-            // and amperes are never silently compared with volts.
-            ValueKind.Of<ValueRange>((v, _) => PropertyFacet.OfInterval(PropertyValueKind.Range, v)),
+            // and amperes are never silently compared with volts. The canonical usually repeats it ("30 – 500 A");
+            // when it does not, the definition's declared label IS the unit, and dropping it here would make two
+            // bare intervals in different dimensions look comparable — the exact coercion this refuses elsewhere.
+            ValueKind.Of<ValueRange>((v, unit) => PropertyFacet.OfInterval(PropertyValueKind.Range,
+                v.Unit is null && !string.IsNullOrWhiteSpace(unit) ? v with { Unit = unit.Trim() } : v)),
             ValueKind.Of<Current>((v, _) =>
                 PropertyFacet.OfScalar(PropertyValueKind.Current, v.Amperes, Current.Unit, v.Qualifier)),
             ValueKind.Of<Voltage>((v, _) =>

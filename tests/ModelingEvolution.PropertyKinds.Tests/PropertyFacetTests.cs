@@ -278,6 +278,22 @@ public class PropertyFacetTests
     }
 
     [Fact]
+    public void A_bare_interval_takes_its_unit_from_the_property_definition()
+    {
+        // A canonical usually repeats the unit ("30 – 500 A"). When it does not, the definition's declared label IS
+        // the unit — and dropping it would make a bare current range and a bare voltage range look comparable,
+        // which is the coercion every other refusal here exists to prevent.
+        var amps = Facet(PropertyValueKind.Range, "30-500", unit: "A");
+        amps.Unit.Should().Be("A");
+
+        var volts = Facet(PropertyValueKind.Range, "12-45", unit: "V");
+        amps.TryMatch(SearchOperator.Overlaps, volts, out _).Should().BeFalse();
+
+        // …and a unit written INSIDE the canonical still wins, because that is what the value actually says.
+        Facet(PropertyValueKind.Range, "30 – 500 A", unit: "V").Unit.Should().Be("A");
+    }
+
+    [Fact]
     public void Two_dimensionless_scalars_with_different_unit_labels_are_refused()
     {
         var axes = Facet(PropertyValueKind.Integer, "6", unit: "axes");

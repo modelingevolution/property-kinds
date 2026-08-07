@@ -44,7 +44,7 @@ public class PropertyKindRefTests
         // "the website is behind the ERP" is only actionable if the log says WHICH kind. A generic "unrecognised
         // value" would leave an operator diffing two enums by hand.
         PropertyKindRef.Read("Torque").Token.Should().Be("Torque");
-        PropertyKindRef.Read("Torque").ToString().Should().Be("Torque");
+        PropertyKindRef.Read("Torque").Display.Should().Be("Torque");
     }
 
     [Fact]
@@ -66,7 +66,9 @@ public class PropertyKindRefTests
         var read = PropertyKindRef.Read(token);
         read.Should().Be(PropertyKindRef.Unknown);
         read.Token.Should().BeEmpty();
-        read.ToString().Should().Be("Unknown", "a rendered cell and a log line both need something to say");
+        read.Display.Should().Be("Unknown", "a rendered cell and a log line both need something to say");
+        read.ToString().Should().BeEmpty(
+            "ToString is the SERIALISED form, so a blank kind must come back blank rather than as the word");
     }
 
     [Fact]
@@ -86,6 +88,7 @@ public class PropertyKindRefTests
             var reference = PropertyKindRef.Of(kind);
             reference.Token.Should().Be(kind.ToString());
             PropertyKindRef.Read(reference.ToString()).Known.Should().Be(kind);
+            PropertyKindRef.Read(reference.ToString()).Should().Be(reference, "the serialised form round-trips");
         }
     }
 
