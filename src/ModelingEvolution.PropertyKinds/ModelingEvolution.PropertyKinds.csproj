@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>ModelingEvolution.PropertyKinds</PackageId>
+    <!-- PLACEHOLDER. The real version is injected by the release workflow from the git tag
+         (/p:Version=…); a version committed here would be a second authority for it. -->
+    <Version>1.0.0</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- The positional members of a record struct inherit their meaning from the type's own summary;
+         requiring a separate <param> for `decimal Kilograms` would be noise, not documentation. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The value structs are IParsable<T> and serialise as their canonical string, which is the
+         whole point of the canonical form: one representation on the wire, in a file and in a log. -->
+    <PackageReference Include="ModelingEvolution.JsonParsableConverter" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModelingEvolution.PropertyKinds.Tests" />
+  </ItemGroup>
+
+</Project>

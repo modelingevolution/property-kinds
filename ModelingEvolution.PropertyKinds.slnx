@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ModelingEvolution.PropertyKinds/ModelingEvolution.PropertyKinds.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ModelingEvolution.PropertyKinds.Tests/ModelingEvolution.PropertyKinds.Tests.csproj" />
+  </Folder>
+</Solution>
