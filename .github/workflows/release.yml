@@ -67,6 +67,22 @@ jobs:
         retention-days: 7
         path: ${{ env.NUGET_DIRECTORY }}/*.nupkg
     
+    # INTERNAL FEED FIRST — the house dual-publish order (publish-nuget skill). It is available
+    # immediately, where nuget.org takes 5-15 minutes to propagate, so a deploy that consumes this
+    # package is not left waiting on a public index.
+    - name: Publish to ModelingEvolution NuGet
+      run: |
+        dotnet nuget push "${{ env.NUGET_DIRECTORY }}/*.nupkg" \
+          --api-key ${{ secrets.NUGET_API_KEY_ME }} \
+          --source https://nuget.modelingevolution.com/v3/index.json \
+          --skip-duplicate
+      continue-on-error: true
+
+    # PUBLIC, AND CURRENTLY REQUIRED — not merely nice to have. Both container builds that consume
+    # this package restore from nuget.org and only nuget.org: erp/Dockerfile pins
+    # `--source https://api.nuget.org/v3/index.json`, and website/src/RocketWelder.Web/Dockerfile
+    # takes the SDK image's defaults with no NuGet.Config in the build context. Until one of those
+    # is given the internal feed, an internal-only publish does not unblock a deploy.
     - name: Publish to NuGet.org
       run: |
         for file in ${{ env.NUGET_DIRECTORY }}/*.nupkg
@@ -76,14 +92,6 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
         done
-    
-    - name: Publish to ModelingEvolution NuGet
-      run: |
-        dotnet nuget push "${{ env.NUGET_DIRECTORY }}/*.nupkg" \
-          --api-key ${{ secrets.NUGET_API_KEY_ME }} \
-          --source https://nuget.modelingevolution.com/v3/index.json \
-          --skip-duplicate
-      continue-on-error: true
 
     - name: Publish to GitHub Packages
       run: |
