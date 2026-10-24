@@ -20,6 +20,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write   # Trusted Publishing: lets NuGet/login mint a 1-hour key
       contents: write
       packages: write
     
@@ -83,12 +84,19 @@ jobs:
     # `--source https://api.nuget.org/v3/index.json`, and website/src/RocketWelder.Web/Dockerfile
     # takes the SDK image's defaults with no NuGet.Config in the build context. Until one of those
     # is given the internal feed, an internal-only publish does not unblock a deploy.
+    - name: NuGet login (OIDC -> temporary API key)
+      # nuget.org Trusted Publishing: no long-lived key. The policy on nuget.org names this repo and this workflow
+      # file; `user` is the nuget.org username of the POLICY CREATOR (not the package owner / org).
+      id: nuget_login
+      uses: NuGet/login@v1
+      with:
+        user: rafal.maciag
     - name: Publish to NuGet.org
       run: |
         for file in ${{ env.NUGET_DIRECTORY }}/*.nupkg
         do
           dotnet nuget push "$file" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --api-key ${{ steps.nuget_login.outputs.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
         done
